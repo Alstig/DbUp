@@ -40,7 +40,22 @@ public static class MySqlExtensions
     {
         return MySqlDatabase(new MySqlConnectionManager(connectionString), schema);
     }
-    
+
+    /// <summary>
+    /// Creates an upgrader for MySql databases.
+    /// </summary>
+    /// <param name="supported">Fluent helper type.</param>
+    /// <param name="connectionString">MySql database connection string.</param>
+    /// <param name="schema">Which MySql schema to check for changes</param>
+    /// <param name="tableName">Which MySql table name to use for versions</param>
+    /// <returns>
+    /// A builder for a database upgrader designed for MySql databases.
+    /// </returns>
+    public static UpgradeEngineBuilder MySqlDatabase(this SupportedDatabases supported, string connectionString, string schema, string tableName)
+    {
+        return MySqlDatabase(new MySqlConnectionManager(connectionString), schema, tableName);
+    }
+
     /// <summary>
     /// Creates an upgrader for MySql databases.
     /// </summary>
@@ -72,12 +87,12 @@ public static class MySqlExtensions
     /// <returns>
     /// A builder for a database upgrader designed for MySql databases.
     /// </returns>
-    public static UpgradeEngineBuilder MySqlDatabase(IConnectionManager connectionManager, string schema)
+    public static UpgradeEngineBuilder MySqlDatabase(IConnectionManager connectionManager, string schema, string tableName = "schemaversions")
     {
         var builder = new UpgradeEngineBuilder();
         builder.Configure(c => c.ConnectionManager = connectionManager);
         builder.Configure(c => c.ScriptExecutor = new MySqlScriptExecutor(() => c.ConnectionManager, () => c.Log, null, () => c.VariablesEnabled, c.ScriptPreprocessors, () => c.Journal));
-        builder.Configure(c => c.Journal = new MySqlTableJournal(() => c.ConnectionManager, () => c.Log, schema, "schemaversions"));
+        builder.Configure(c => c.Journal = new MySqlTableJournal(() => c.ConnectionManager, () => c.Log, schema, tableName));
         builder.WithPreprocessor(new MySqlPreprocessor());
         return builder;
     }
